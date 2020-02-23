@@ -12,25 +12,11 @@ BUILD_HASH = $(shell git rev-parse HEAD)
 ifeq ($(BUILD_NUMBER),)
 	BUILD_NUMBER := dev
 endif
-BUILD_ENTERPRISE_DIR ?= ../enterprise
-BUILD_ENTERPRISE ?= true
-BUILD_ENTERPRISE_READY = false
-BUILD_TYPE_NAME = team
-BUILD_HASH_ENTERPRISE = none
+BUILD_ENTERPRISE = true
+BUILD_ENTERPRISE_READY = true
+BUILD_TYPE_NAME = enterprise
+BUILD_HASH_ENTERPRISE = not-applicable
 LDAP_DATA ?= test
-ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
-	ifeq ($(BUILD_ENTERPRISE),true)
-		BUILD_ENTERPRISE_READY = true
-		BUILD_TYPE_NAME = enterprise
-		BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
-	else
-		BUILD_ENTERPRISE_READY = false
-		BUILD_TYPE_NAME = team
-	endif
-else
-	BUILD_ENTERPRISE_READY = false
-	BUILD_TYPE_NAME = team
-endif
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independant
@@ -96,21 +82,11 @@ PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.0.0
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
-	IGNORE:=$(shell rm -f imports/imports.go)
-	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
-	IGNORE:=$(shell rm -f enterprise)
-	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
 else
 	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
-EE_PACKAGES=$(shell $(GO) list ./enterprise/...)
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
-else
 ALL_PACKAGES=$(TE_PACKAGES)
-endif
 
 
 all: run ## Alias for 'run'.
@@ -187,10 +163,6 @@ megacheck: ## Run megacheck on codebasis
 	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
 	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
 
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GOPATH)/bin/megacheck $(EE_PACKAGES) || exit 1
-endif
-
 i18n-extract: ## Extract strings for translation from the source code
 	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
@@ -242,26 +214,6 @@ test-te-race: ## Checks for race conditions in the team edition.
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race: ## Checks for race conditions in the enterprise edition.
-	@echo Testing EE race conditions
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo "Packages to test: "$(EE_PACKAGES)
-
-	for package in $(EE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -c $$package; \
-		if [ -f $$(basename $$package).test ]; then \
-			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.timeout=2000s || exit 1; \
-			rm -r $$(basename $$package).test; \
-		fi; \
-	done
-
-	rm -f config/*.crt
-	rm -f config/*.key
-endif
-
 test-server-race: test-te-race test-ee-race ## Checks for race conditions.
 	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
 
@@ -283,11 +235,7 @@ test-db-migration: start-docker ## Gets diff of upgrade vs new instance schemas.
 	./scripts/psql-migration-test.sh
 
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Running all tests
-else
 	@echo Running only TE tests
-endif
 	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
 
 internal-test-web-client: ## Runs web client tests.
