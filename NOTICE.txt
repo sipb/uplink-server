@@ -1,5 +1,12 @@
 Mattermost Server
-© 2015-present Mattermost, Inc.  All Rights Reserved.  See LICENSE.txt for license information.
+
+Original product:
+© 2015-present Mattermost, Inc.  All Rights Reserved.
+
+Certain modifications:
+© 2020-present Cel Skeggs and other contributors.  All Rights Reserved.
+
+See LICENSE.txt for license information.
 
 NOTICES:
 --------
