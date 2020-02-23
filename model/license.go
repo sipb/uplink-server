@@ -205,6 +205,45 @@ func NewTestLicense(features ...string) *License {
 	return ret
 }
 
+var StubLicense = &License{
+	Id: "00000000000000000000000000",
+	IssuedAt: 0,
+	StartsAt: 1,
+	ExpiresAt: 1 << 62,
+	Customer: &Customer {
+		Id: "nonexistent",
+		Name: "nonexistent",
+		Email: "nonexistent",
+		Company: "nonexistent",
+		PhoneNumber: "nonexistent",
+	},
+	Features: &Features{
+		Users: NewInt(100000000),
+		LDAP: NewBool(true),
+		LDAPGroups: NewBool(true),
+		MFA: NewBool(true),
+		GoogleOAuth: NewBool(true),
+		Office365OAuth: NewBool(true),
+		Compliance: NewBool(true),
+		Cluster: NewBool(true),
+		Metrics: NewBool(true),
+		MHPNS: NewBool(true),
+		SAML: NewBool(true),
+		Elasticsearch: NewBool(true),
+		Announcement: NewBool(true),
+		ThemeManagement: NewBool(true),
+		EmailNotificationContents: NewBool(true),
+		DataRetention: NewBool(true),
+		MessageExport: NewBool(true),
+		CustomPermissionsSchemes: NewBool(true),
+		CustomTermsOfService: NewBool(true),
+		GuestAccountsPermissions: NewBool(true),
+		FutureFeatures: NewBool(true),
+	},
+	SkuName: "nonexistent",
+	SkuShortName: "nonexistent",
+}
+
 func LicenseFromJson(data io.Reader) *License {
 	var o *License
 	json.NewDecoder(data).Decode(&o)

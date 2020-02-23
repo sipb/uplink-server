@@ -15,34 +15,7 @@ import (
 )
 
 func (a *App) LoadLicense() {
-	a.SetLicense(nil)
-
-	licenseId := ""
-	props, err := a.Srv.Store.System().Get()
-	if err == nil {
-		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
-	}
-
-	if len(licenseId) != 26 {
-		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*a.Config().ServiceSettings.LicenseFileLocation)
-
-		if license != nil {
-			if _, err = a.SaveLicense(licenseBytes); err != nil {
-				mlog.Info("Failed to save license key loaded from disk.", mlog.Err(err))
-			} else {
-				licenseId = license.Id
-			}
-		}
-	}
-
-	record, err := a.Srv.Store.License().Get(licenseId)
-	if err != nil {
-		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
-		return
-	}
-
-	a.ValidateAndSetLicenseBytes([]byte(record.Bytes))
+	a.SetLicense(model.StubLicense)
 	mlog.Info("License key valid unlocking enterprise features.")
 }
 
