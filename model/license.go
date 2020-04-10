@@ -207,14 +207,14 @@ func NewTestLicense(features ...string) *License {
 
 var StubLicense = &License{
 	Id: "00000000000000000000000000",
-	IssuedAt: 0,
-	StartsAt: 1,
-	ExpiresAt: 1 << 62,
+	IssuedAt: 1582503027914,
+	StartsAt: 1577854800000,
+	ExpiresAt: 32503697999000,
 	Customer: &Customer {
 		Id: "nonexistent",
-		Name: "nonexistent",
+		Name: "You",
 		Email: "nonexistent",
-		Company: "nonexistent",
+		Company: "You",
 		PhoneNumber: "nonexistent",
 	},
 	Features: &Features{
@@ -240,8 +240,8 @@ var StubLicense = &License{
 		GuestAccountsPermissions: NewBool(true),
 		FutureFeatures: NewBool(true),
 	},
-	SkuName: "nonexistent",
-	SkuShortName: "nonexistent",
+	SkuName: "Automatic Feature Enablement",
+	SkuShortName: "Automatic",
 }
 
 func LicenseFromJson(data io.Reader) *License {

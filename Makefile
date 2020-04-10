@@ -17,7 +17,7 @@ BUILD_ENTERPRISE_READY = true
 BUILD_TYPE_NAME = enterprise
 BUILD_HASH_ENTERPRISE = not-applicable
 LDAP_DATA ?= test
-BUILD_WEBAPP_DIR ?= ../mattermost-webapp
+BUILD_WEBAPP_DIR ?= ../uplink-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independant
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
