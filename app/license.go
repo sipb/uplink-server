@@ -24,7 +24,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	}
 	license := model.LicenseFromJson(strings.NewReader(licenseStr))
 
-	uniqueUserCount, err := a.Srv.Store.User().Count(model.UserCountOptions{})
+	uniqueUserCount, err := a.Srv().Store.User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -45,7 +45,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, err = a.Srv.Store.License().Save(record)
+	_, err = a.Srv().Store.License().Save(record)
 	if err != nil {
 		a.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
@@ -54,7 +54,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	sysVar := &model.System{}
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = license.Id
-	if err := a.Srv.Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
 		a.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -65,11 +65,11 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	// start job server if necessary - this handles the edge case where a license file is uploaded, but the job server
 	// doesn't start until the server is restarted, which prevents the 'run job now' buttons in system console from
 	// functioning as expected
-	if *a.Config().JobSettings.RunJobs && a.Srv.Jobs != nil && a.Srv.Jobs.Workers != nil {
-		a.Srv.Jobs.StartWorkers()
+	if *a.Config().JobSettings.RunJobs && a.Srv().Jobs != nil && a.Srv().Jobs.Workers != nil {
+		a.Srv().Jobs.StartWorkers()
 	}
-	if *a.Config().JobSettings.RunScheduler && a.Srv.Jobs != nil && a.Srv.Jobs.Schedulers != nil {
-		a.Srv.Jobs.StartSchedulers()
+	if *a.Config().JobSettings.RunScheduler && a.Srv().Jobs != nil && a.Srv().Jobs.Schedulers != nil {
+		a.Srv().Jobs.StartSchedulers()
 	}
 
 	return license, nil
@@ -77,12 +77,12 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 
 // License returns the currently active license or nil if the application is unlicensed.
 func (a *App) License() *model.License {
-	return a.Srv.License()
+	return a.Srv().License()
 }
 
 func (a *App) SetLicense(license *model.License) bool {
 	defer func() {
-		for _, listener := range a.Srv.licenseListeners {
+		for _, listener := range a.Srv().licenseListeners {
 			listener()
 		}
 	}()
@@ -90,13 +90,13 @@ func (a *App) SetLicense(license *model.License) bool {
 	if license != nil {
 		license.Features.SetDefaults()
 
-		a.Srv.licenseValue.Store(license)
-		a.Srv.clientLicenseValue.Store(utils.GetClientLicense(license))
+		a.Srv().licenseValue.Store(license)
+		a.Srv().clientLicenseValue.Store(utils.GetClientLicense(license))
 		return true
 	}
 
-	a.Srv.licenseValue.Store((*model.License)(nil))
-	a.Srv.clientLicenseValue.Store(map[string]string(nil))
+	a.Srv().licenseValue.Store((*model.License)(nil))
+	a.Srv().clientLicenseValue.Store(map[string]string(nil))
 	return false
 }
 
@@ -111,18 +111,18 @@ func (a *App) ValidateAndSetLicenseBytes(b []byte) {
 }
 
 func (a *App) SetClientLicense(m map[string]string) {
-	a.Srv.clientLicenseValue.Store(m)
+	a.Srv().clientLicenseValue.Store(m)
 }
 
 func (a *App) ClientLicense() map[string]string {
-	if clientLicense, _ := a.Srv.clientLicenseValue.Load().(map[string]string); clientLicense != nil {
+	if clientLicense, _ := a.Srv().clientLicenseValue.Load().(map[string]string); clientLicense != nil {
 		return clientLicense
 	}
 	return map[string]string{"IsLicensed": "false"}
 }
 
 func (a *App) RemoveLicense() *model.AppError {
-	if license, _ := a.Srv.licenseValue.Load().(*model.License); license == nil {
+	if license, _ := a.Srv().licenseValue.Load().(*model.License); license == nil {
 		return nil
 	}
 
@@ -130,7 +130,7 @@ func (a *App) RemoveLicense() *model.AppError {
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
 
-	if err := a.Srv.Store.System().SaveOrUpdate(sysVar); err != nil {
+	if err := a.Srv().Store.System().SaveOrUpdate(sysVar); err != nil {
 		return err
 	}
 
@@ -150,7 +150,7 @@ func (s *Server) AddLicenseListener(listener func()) string {
 
 func (a *App) AddLicenseListener(listener func()) string {
 	id := model.NewId()
-	a.Srv.licenseListeners[id] = listener
+	a.Srv().licenseListeners[id] = listener
 	return id
 }
 
@@ -159,7 +159,7 @@ func (s *Server) RemoveLicenseListener(id string) {
 }
 
 func (a *App) RemoveLicenseListener(id string) {
-	delete(a.Srv.licenseListeners, id)
+	delete(a.Srv().licenseListeners, id)
 }
 
 func (a *App) GetSanitizedClientLicense() map[string]string {
