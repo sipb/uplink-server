@@ -129,7 +129,7 @@ type ChannelStore interface {
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
-	GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError)
+	GetDeleted(team_id string, offset int, limit int, userId string) (*model.ChannelList, *model.AppError)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, *model.AppError)
@@ -173,8 +173,9 @@ type ChannelStore interface {
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
+	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, int64, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchArchivedInTeam(teamId string, term string, userId string) (*model.ChannelList, *model.AppError)
 	SearchForUserInTeam(userId string, teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
@@ -300,6 +301,7 @@ type UserStore interface {
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
+	DeactivateGuests() ([]string, *model.AppError)
 }
 
 type BotStore interface {
@@ -626,11 +628,20 @@ type LinkMetadataStore interface {
 // NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
 // IncludeDeleted will include channel records where DeleteAt != 0.
 // ExcludeChannelNames will exclude channels from the results by name.
+// Paginate whether to paginate the results.
+// Page page requested, if results are paginated.
+// PerPage number of results per page, if paginated.
 //
 type ChannelSearchOpts struct {
 	NotAssociatedToGroup string
 	IncludeDeleted       bool
 	ExcludeChannelNames  []string
+	Page                 *int
+	PerPage              *int
+}
+
+func (c *ChannelSearchOpts) IsPaginated() bool {
+	return c.Page != nil && c.PerPage != nil
 }
 
 type UserGetByIdsOpts struct {
