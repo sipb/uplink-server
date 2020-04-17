@@ -4,8 +4,6 @@
 package app
 
 import (
-	"crypto/md5"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -162,22 +160,6 @@ func (s *Server) RemoveLicenseListener(id string) {
 
 func (a *App) RemoveLicenseListener(id string) {
 	delete(a.Srv.licenseListeners, id)
-}
-
-func (a *App) GetClientLicenseEtag(useSanitized bool) string {
-	value := ""
-
-	lic := a.ClientLicense()
-
-	if useSanitized {
-		lic = a.GetSanitizedClientLicense()
-	}
-
-	for k, v := range lic {
-		value += fmt.Sprintf("%s:%s;", k, v)
-	}
-
-	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
 }
 
 func (a *App) GetSanitizedClientLicense() map[string]string {
