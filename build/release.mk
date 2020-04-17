@@ -3,7 +3,12 @@ dist: | check-style test package
 
 build-linux:
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
+ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN) $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
+else
+	mkdir -p $(GOBIN)/linux_amd64
+	env GOOS=linux GOARCH=amd64 $(GO) build -o $(GOBIN)/linux_amd64 $(GOFLAGS) -trimpath -ldflags '$(LDFLAGS)' ./...
+endif
 
 build: build-linux
 
@@ -63,11 +68,11 @@ package:
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	cp $(GOPATH)/bin/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+	cp $(GOBIN)/mattermost $(DIST_PATH)/bin # from native bin dir, not cross-compiled
+	cp $(GOBIN)/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
 else
-	cp $(GOPATH)/bin/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
-	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
+	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
+	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
