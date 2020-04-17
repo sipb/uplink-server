@@ -107,6 +107,7 @@ func TestMoveChannel(t *testing.T) {
 	// It should fail, unless removeDeactivatedMembers is true.
 	deacivatedUser := th.CreateUser()
 	channel2 := th.CreateChannel(sourceTeam)
+	defer th.App.PermanentDeleteChannel(channel2)
 
 	_, err = th.App.AddUserToTeam(sourceTeam.Id, deacivatedUser.Id, "")
 	require.Nil(t, err)
@@ -136,6 +137,7 @@ func TestMoveChannel(t *testing.T) {
 
 	channel3, err = th.App.CreateChannel(channel3, false)
 	require.Nil(t, err)
+	defer th.App.PermanentDeleteChannel(channel3)
 
 	err = th.App.MoveChannel(targetTeam, channel3, th.BasicUser, false)
 	assert.Nil(t, err)
@@ -208,6 +210,7 @@ func TestJoinDefaultChannelsExperimentalDefaultChannels(t *testing.T) {
 	defer th.TearDown()
 
 	basicChannel2 := th.CreateChannel(th.BasicTeam)
+	defer th.App.PermanentDeleteChannel(basicChannel2)
 	defaultChannelList := []string{th.BasicChannel.Name, basicChannel2.Name, basicChannel2.Name}
 	th.App.Config().TeamSettings.ExperimentalDefaultChannels = defaultChannelList
 
@@ -259,6 +262,7 @@ func TestCreateChannelDisplayNameTrimsWhitespace(t *testing.T) {
 	defer th.TearDown()
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "  Public 1  ", Name: "public1", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
+	defer th.App.PermanentDeleteChannel(channel)
 	require.Nil(t, err)
 	require.Equal(t, channel.DisplayName, "Public 1")
 }
@@ -390,30 +394,6 @@ func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
-/*func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	// a user creates a channel
-	publicChannel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
-	histories, err := th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)
-	require.Nil(t, err)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.Nil(t, histories[0].LeaveTime)
-
-	// the user leaves that channel
-	if err := th.App.LeaveChannel(publicChannel.Id, th.BasicUser.Id); err != nil {
-		t.Fatal("Failed to remove user from channel. Error: " + err.Message)
-	}
-	histories = store.Must(th.App.Srv().Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, publicChannel.Id)).([]*model.ChannelMemberHistoryResult)
-	assert.Len(t, histories, 1)
-	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
-	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
-	assert.NotNil(t, histories[0].LeaveTime)
-}*/
-
 func TestLeaveDefaultChannel(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
@@ -477,9 +457,8 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 
 	// create a user and add it to a channel
 	user := th.CreateUser()
-	if _, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id); err != nil {
-		t.Fatal("Failed to add user to team. Error: " + err.Message)
-	}
+	_, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id)
+	require.Nil(t, err)
 
 	groupUserIds := make([]string, 0)
 	groupUserIds = append(groupUserIds, th.BasicUser.Id)
@@ -488,7 +467,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	userRequestorId := ""
 	postRootId := ""
-	_, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId)
+	_, err = th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId)
 	require.Nil(t, err, "Failed to add user to channel.")
 
 	// there should be a ChannelMemberHistory record for the user
@@ -827,6 +806,36 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	require.Nil(t, err, "Failed to get the timezones for a channel.")
 
 	assert.Equal(t, 2, len(timezones))
+}
+
+func TestGetChannelsForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	channel := &model.Channel{
+		DisplayName: fmt.Sprintf("Public"),
+		Name:        fmt.Sprintf("public"),
+		Type:        model.CHANNEL_OPEN,
+		CreatorId:   th.BasicUser.Id,
+		TeamId:      th.BasicTeam.Id,
+	}
+	th.App.CreateChannel(channel, true)
+	defer th.App.PermanentDeleteChannel(channel)
+	defer th.TearDown()
+
+	channelList, err := th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 4)
+
+	th.App.DeleteChannel(channel, th.BasicUser.Id)
+
+	// Now we get all the non-archived channels for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, false)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 3)
+
+	// Now we get all the channels, even though are archived, for the user
+	channelList, err = th.App.GetChannelsForUser(th.BasicTeam.Id, th.BasicUser.Id, true)
+	require.Nil(t, err)
+	require.Len(t, *channelList, 4)
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
