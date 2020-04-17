@@ -1784,14 +1784,36 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 // MarkChanelAsUnreadFromPost will take a post and set the channel as unread from that one.
 func (a *App) MarkChannelAsUnreadFromPost(postID string, userID string) (*model.ChannelUnreadAt, *model.AppError) {
-
 	post, err := a.GetSinglePost(postID)
 	if err != nil {
 		return nil, err
 	}
 
-	unreadMentions := 0 // TODO: calculate this value, setting it to zero for now.
-	return a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	unreadMentions, err := a.countMentionsFromPost(user, post)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, updateErr := a.Srv.Store.Channel().UpdateLastViewedAtPost(post, userID, unreadMentions)
+	if err != nil {
+		return channel, updateErr
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_UNREAD, channel.TeamId, channel.ChannelId, channel.UserId, nil)
+	message.Add("msg_count", channel.MsgCount)
+	message.Add("mention_count", channel.MentionCount)
+	message.Add("last_viewed_at", channel.LastViewedAt)
+	message.Add("post_id", postID)
+	a.Publish(message)
+
+	a.UpdateMobileAppBadge(userID)
+
+	return channel, nil
 }
 
 func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
