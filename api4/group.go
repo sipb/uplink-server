@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/v5/audit"
 	"github.com/mattermost/mattermost-server/v5/model"
 )
 
@@ -105,6 +106,9 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchGroup", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.patchGroup", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -120,6 +124,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("group", group)
 
 	group.Patch(groupPatch)
 
@@ -128,6 +133,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+	auditRec.AddMeta("patch", group)
 
 	b, marshalErr := json.Marshal(group)
 	if marshalErr != nil {
@@ -135,6 +141,7 @@ func patchGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
 	w.Write(b)
 }
 
@@ -161,6 +168,12 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.io_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	auditRec := c.MakeAuditRecord("linkGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("syncable_id", syncableID)
+	auditRec.AddMeta("syncable_type", syncableType)
 
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
@@ -203,7 +216,7 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	auditRec.Success()
 	w.Write(b)
 }
 
@@ -311,6 +324,12 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec := c.MakeAuditRecord("patchGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("old_syncable_id", syncableID)
+	auditRec.AddMeta("old_syncable_type", syncableType)
+
 	var patch *model.GroupSyncablePatch
 	err = json.Unmarshal(body, &patch)
 	if err != nil || patch == nil {
@@ -344,6 +363,9 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("new_syncable_id", groupSyncable.SyncableId)
+	auditRec.AddMeta("new_syncable_type", groupSyncable.Type)
+
 	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
 	// persists the execution status to the jobs table.
 	go c.App.SyncRolesAndMembership(syncableID, syncableType)
@@ -353,7 +375,7 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.patchGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
-
+	auditRec.Success()
 	w.Write(b)
 }
 
@@ -375,6 +397,12 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	syncableType := c.Params.SyncableType
 
+	auditRec := c.MakeAuditRecord("unlinkGroupSyncable", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("group_id", c.Params.GroupId)
+	auditRec.AddMeta("syncable_id", syncableID)
+	auditRec.AddMeta("syncable_type", syncableType)
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.unlinkGroupSyncable", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -395,6 +423,8 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Not awaiting completion because the group sync job executes the same procedure—but for all syncables—and
 	// persists the execution status to the jobs table.
 	go c.App.SyncRolesAndMembership(syncableID, syncableType)
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }

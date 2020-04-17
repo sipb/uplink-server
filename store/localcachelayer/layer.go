@@ -20,6 +20,9 @@ const (
 	SCHEME_CACHE_SIZE = 20000
 	SCHEME_CACHE_SEC  = 30 * 60
 
+	FILE_INFO_CACHE_SIZE = 25000
+	FILE_INFO_CACHE_SEC  = 30 * 60
+
 	CHANNEL_GUEST_COUNT_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
 	CHANNEL_GUEST_COUNT_CACHE_SEC  = 30 * 60
 
@@ -65,8 +68,12 @@ type LocalCacheStore struct {
 	reaction      LocalCacheReactionStore
 	reactionCache cache.Cache
 
-	role      LocalCacheRoleStore
-	roleCache cache.Cache
+	fileInfo      LocalCacheFileInfoStore
+	fileInfoCache cache.Cache
+
+	role                 LocalCacheRoleStore
+	roleCache            cache.Cache
+	rolePermissionsCache cache.Cache
 
 	scheme      LocalCacheSchemeStore
 	schemeCache cache.Cache
@@ -112,11 +119,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 
 	// Roles
 	localCacheStore.roleCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES)
+	localCacheStore.rolePermissionsCache = cacheProvider.NewCacheWithParams(ROLE_CACHE_SIZE, "RolePermission", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLE_PERMISSIONS)
 	localCacheStore.role = LocalCacheRoleStore{RoleStore: baseStore.Role(), rootStore: &localCacheStore}
 
 	// Schemes
 	localCacheStore.schemeCache = cacheProvider.NewCacheWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES)
 	localCacheStore.scheme = LocalCacheSchemeStore{SchemeStore: baseStore.Scheme(), rootStore: &localCacheStore}
+
+	// FileInfo
+	localCacheStore.fileInfoCache = cacheProvider.NewCacheWithParams(FILE_INFO_CACHE_SIZE, "FileInfo", FILE_INFO_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_FILE_INFOS)
+	localCacheStore.fileInfo = LocalCacheFileInfoStore{FileInfoStore: baseStore.FileInfo(), rootStore: &localCacheStore}
 
 	// Webhooks
 	localCacheStore.webhookCache = cacheProvider.NewCacheWithParams(WEBHOOK_CACHE_SIZE, "Webhook", WEBHOOK_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS)
@@ -155,7 +167,9 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, localCacheStore.role.handleClusterInvalidateRole)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLE_PERMISSIONS, localCacheStore.role.handleClusterInvalidateRolePermissions)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES, localCacheStore.scheme.handleClusterInvalidateScheme)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_FILE_INFOS, localCacheStore.fileInfo.handleClusterInvalidateFileInfo)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_LAST_POST_TIME, localCacheStore.post.handleClusterInvalidateLastPostTime)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOKS, localCacheStore.webhook.handleClusterInvalidateWebhook)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_EMOJIS_BY_ID, localCacheStore.emoji.handleClusterInvalidateEmojiById)
@@ -183,6 +197,10 @@ func (s LocalCacheStore) Role() store.RoleStore {
 
 func (s LocalCacheStore) Scheme() store.SchemeStore {
 	return s.scheme
+}
+
+func (s LocalCacheStore) FileInfo() store.FileInfoStore {
+	return s.fileInfo
 }
 
 func (s LocalCacheStore) Webhook() store.WebhookStore {
@@ -263,6 +281,9 @@ func (s *LocalCacheStore) doClearCacheCluster(cache cache.Cache) {
 
 func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.reactionCache)
+	s.doClearCacheCluster(s.schemeCache)
+	s.doClearCacheCluster(s.roleCache)
+	s.doClearCacheCluster(s.fileInfoCache)
 	s.doClearCacheCluster(s.webhookCache)
 	s.doClearCacheCluster(s.emojiCacheById)
 	s.doClearCacheCluster(s.emojiIdCacheByName)
@@ -276,4 +297,5 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.userProfileByIdsCache)
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
+	s.doClearCacheCluster(s.rolePermissionsCache)
 }
