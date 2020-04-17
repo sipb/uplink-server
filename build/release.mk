@@ -55,6 +55,7 @@ package:
 	mkdir -p tmpprepackaged
 	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz.sig; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -71,6 +72,7 @@ endif
 	@# Strip and prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*darwin*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+		cp tmpprepackaged/$$plugin_package.tar.gz.sig $(DIST_PATH)/prepackaged_plugins; \
 	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
