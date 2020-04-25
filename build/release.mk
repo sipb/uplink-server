@@ -52,7 +52,6 @@ package:
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
 	@# Help files
-	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
 
