@@ -156,6 +156,7 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, error)
 	GetAllChannelsCount(opts ChannelSearchOpts) (int64, error)
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, error)
+	GetPrivateChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
@@ -374,9 +375,9 @@ type SessionStore interface {
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) *model.AppError
-	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
-	PermanentDeleteByUser(userId string) *model.AppError
+	Save(audit *model.Audit) error
+	Get(user_id string, offset int, limit int) (model.Audits, error)
+	PermanentDeleteByUser(userId string) error
 }
 
 type ClusterDiscoveryStore interface {
@@ -493,8 +494,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError)
-	Get(id string) (*model.LicenseRecord, *model.AppError)
+	Save(license *model.LicenseRecord) (*model.LicenseRecord, error)
+	Get(id string) (*model.LicenseRecord, error)
 }
 
 type TokenStore interface {
@@ -541,12 +542,12 @@ type FileInfoStore interface {
 }
 
 type ReactionStore interface {
-	Save(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError)
-	DeleteAllWithEmojiName(emojiName string) *model.AppError
-	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
+	Save(reaction *model.Reaction) (*model.Reaction, error)
+	Delete(reaction *model.Reaction) (*model.Reaction, error)
+	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, error)
+	DeleteAllWithEmojiName(emojiName string) error
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
+	BulkGetForPosts(postIds []string) ([]*model.Reaction, error)
 }
 
 type JobStore interface {
@@ -611,14 +612,14 @@ type RoleStore interface {
 }
 
 type SchemeStore interface {
-	Save(scheme *model.Scheme) (*model.Scheme, *model.AppError)
-	Get(schemeId string) (*model.Scheme, *model.AppError)
-	GetByName(schemeName string) (*model.Scheme, *model.AppError)
-	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, *model.AppError)
-	Delete(schemeId string) (*model.Scheme, *model.AppError)
-	PermanentDeleteAll() *model.AppError
-	CountByScope(scope string) (int64, *model.AppError)
-	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, *model.AppError)
+	Save(scheme *model.Scheme) (*model.Scheme, error)
+	Get(schemeId string) (*model.Scheme, error)
+	GetByName(schemeName string) (*model.Scheme, error)
+	GetAllPage(scope string, offset int, limit int) ([]*model.Scheme, error)
+	Delete(schemeId string) (*model.Scheme, error)
+	PermanentDeleteAll() error
+	CountByScope(scope string) (int64, error)
+	CountWithoutPermission(scope, permissionID string, roleScope model.RoleScope, roleType model.RoleType) (int64, error)
 }
 
 type TermsOfServiceStore interface {
