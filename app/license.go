@@ -15,7 +15,7 @@ import (
 
 const requestTrialURL = "https://customers.mattermost.com/api/v1/trials"
 
-func (a *App) LoadLicense() {
+func (s *Server) LoadLicense() {
 	s.SetLicense(model.StubLicense)
 	mlog.Info("License key valid unlocking enterprise features.")
 }
