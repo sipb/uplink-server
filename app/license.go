@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"errors"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
