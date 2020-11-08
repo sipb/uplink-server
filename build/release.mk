@@ -48,7 +48,6 @@ build-client:
 
 package:
 	@ echo Packaging mattermost
-
 	@# Remove any old files
 	rm -Rf $(DIST_ROOT)
 
