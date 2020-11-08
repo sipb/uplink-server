@@ -1,4 +1,3 @@
-
 dist: | check-style test package
 
 build-linux:
@@ -79,12 +78,15 @@ package:
 	mkdir -p $(DIST_PATH)/client
 	cp -RL $(BUILD_WEBAPP_DIR)/dist/* $(DIST_PATH)/client
 
-	$(eval MMCTL_REL_TO_DOWNLOAD := $(shell scripts/get_latest_release.sh 'mattermost/mmctl' 'release-'))
-	@echo "Using mmctl version $(MMCTL_REL_TO_DOWNLOAD)"
+	@#Download MMCTL
+	scripts/download_mmctl_release.sh "" $(DIST_PATH)/bin
 
 	@# Help files
 	cp NOTICE.txt $(DIST_PATH)
 	cp README.md $(DIST_PATH)
+	if [ -f ../manifest.txt ]; then \
+		cp ../manifest.txt $(DIST_PATH); \
+	fi
 
 	@# Import Mattermost plugin public key
 	gpg --import build/plugin-production-public-key.gpg
@@ -100,7 +102,6 @@ package:
 
 
 	@# ----- PLATFORM SPECIFIC -----
-
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
@@ -110,7 +111,8 @@ else
 	cp $(GOBIN)/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOBIN)/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
-	MMCTL_FILE="linux_amd64.tar" && curl -f -O -L https://github.com/mattermost/mmctl/releases/download/$(MMCTL_REL_TO_DOWNLOAD)/$$MMCTL_FILE && tar -xvf $$MMCTL_FILE -C $(DIST_PATH)/bin && rm $$MMCTL_FILE
+	#Download MMCTL for Linux
+	scripts/download_mmctl_release.sh "Linux" $(DIST_PATH)/bin
 	@# Prepackage plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
 		ARCH="linux-amd64"; \
