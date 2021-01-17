@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/avct/uasurfer"
+
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
@@ -69,7 +70,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 		}
 		token, err := a.Srv().Store.Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Error("error retrieving the cws token from the store", mlog.Err(err))
+			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -83,11 +84,11 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, cwsToken
 			token = &model.Token{
 				Token:    cwsToken,
 				CreateAt: model.GetMillis(),
-				Type:     TOKEN_TYPE_CWS_ACCESS,
+				Type:     TokenTypeCWSAccess,
 			}
 			err := a.Srv().Store.Token().Save(token)
 			if err != nil {
-				mlog.Error("error storing the cws token in the store", mlog.Err(err))
+				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -125,7 +126,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	if id != "" {
 		user, err := a.GetUser(id)
 		if err != nil {
-			if err.Id != MISSING_ACCOUNT_ERROR {
+			if err.Id != MissingAccountError {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
 			}
