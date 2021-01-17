@@ -11,7 +11,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 var PermissionsCmd = &cobra.Command{
@@ -101,9 +100,9 @@ func exportPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	if license := a.Srv().License(); license == nil {
-		return errors.New(utils.T("cli.license.critical"))
-	}
+	// if license := a.Srv().License(); license == nil {
+	// 	return errors.New(utils.T("cli.license.critical"))
+	// }
 
 	if err = a.ExportPermissions(os.Stdout); err != nil {
 		return errors.New(err.Error())
@@ -122,9 +121,9 @@ func importPermissionsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
-	if license := a.Srv().License(); license == nil {
-		return errors.New(utils.T("cli.license.critical"))
-	}
+	// if license := a.Srv().License(); license == nil {
+	// 	return errors.New(utils.T("cli.license.critical"))
+	// }
 
 	file, err := os.Open(args[0])
 	if err != nil {
