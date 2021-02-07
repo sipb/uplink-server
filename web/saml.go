@@ -113,8 +113,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)
-	mlog.Debug("Site URL Header", mlog.String("URL HEADER", c.GetSiteURLHeader()))
-	http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
+	http.Redirect(w, r, "uplink.mit.edu", http.StatusFound)
 	// samlInterface := c.App.Saml()
 
 	// if samlInterface == nil {
