@@ -79,7 +79,6 @@ TESTS=.
 TE_PACKAGES=$(shell $(GO) list ./... | grep -v ./data)
 
 # Plugins Packages
-<<<<<<< HEAD
 PLUGIN_PACKAGES?=
 #PLUGIN_PACKAGES ?= mattermost-plugin-antivirus-v0.1.2
 #PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.2.1
