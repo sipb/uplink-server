@@ -9,8 +9,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -39,7 +39,7 @@ func (s SqlCommandWebhookStore) createIndexesIfNotExists() {
 }
 
 func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) (*model.CommandWebhook, error) {
-	if len(webhook.Id) > 0 {
+	if webhook.Id != "" {
 		return nil, store.NewErrInvalidInput("CommandWebhook", "id", webhook.Id)
 	}
 

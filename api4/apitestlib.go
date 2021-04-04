@@ -23,9 +23,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/config"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/services/searchengine"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 	"github.com/mattermost/mattermost-server/v5/store/localcachelayer"
 	"github.com/mattermost/mattermost-server/v5/store/storetest/mocks"
@@ -96,7 +96,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 	memoryStore.Set(memoryConfig)
 
-	configStore, err := config.NewStoreFromBacking(memoryStore, nil)
+	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	if err != nil {
 		panic(err)
 	}

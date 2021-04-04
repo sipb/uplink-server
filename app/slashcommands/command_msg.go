@@ -7,11 +7,10 @@ import (
 	"errors"
 	"strings"
 
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -30,7 +29,7 @@ func (*msgProvider) GetTrigger() string {
 	return CmdMsg
 }
 
-func (*msgProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*msgProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdMsg,
 		AutoComplete:     true,
@@ -96,7 +95,7 @@ func (*msgProvider) DoCommand(a *app.App, args *model.CommandArgs, message strin
 		targetChannelId = channel.Id
 	}
 
-	if len(parsedMessage) > 0 {
+	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId

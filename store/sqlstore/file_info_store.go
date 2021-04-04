@@ -14,8 +14,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/v5/einterfaces"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/store"
 )
 
@@ -476,31 +476,31 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 		}
 
 		// handle after: before: on: filters
-		if len(params.OnDate) > 0 {
+		if params.OnDate != "" {
 			onDateStart, onDateEnd := params.GetOnDateMillis()
 			query = query.Where(sq.Expr("FI.CreateAt BETWEEN ? AND ?", strconv.FormatInt(onDateStart, 10), strconv.FormatInt(onDateEnd, 10)))
 		} else {
-			if len(params.ExcludedDate) > 0 {
+			if params.ExcludedDate != "" {
 				excludedDateStart, excludedDateEnd := params.GetExcludedDateMillis()
 				query = query.Where(sq.Expr("FI.CreateAt NOT BETWEEN ? AND ?", strconv.FormatInt(excludedDateStart, 10), strconv.FormatInt(excludedDateEnd, 10)))
 			}
 
-			if len(params.AfterDate) > 0 {
+			if params.AfterDate != "" {
 				afterDate := params.GetAfterDateMillis()
 				query = query.Where(sq.GtOrEq{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
-			if len(params.BeforeDate) > 0 {
+			if params.BeforeDate != "" {
 				beforeDate := params.GetBeforeDateMillis()
 				query = query.Where(sq.LtOrEq{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}
 
-			if len(params.ExcludedAfterDate) > 0 {
+			if params.ExcludedAfterDate != "" {
 				afterDate := params.GetExcludedAfterDateMillis()
 				query = query.Where(sq.Lt{"FI.CreateAt": strconv.FormatInt(afterDate, 10)})
 			}
 
-			if len(params.ExcludedBeforeDate) > 0 {
+			if params.ExcludedBeforeDate != "" {
 				beforeDate := params.GetExcludedBeforeDateMillis()
 				query = query.Where(sq.Gt{"FI.CreateAt": strconv.FormatInt(beforeDate, 10)})
 			}
@@ -592,4 +592,41 @@ func (fs SqlFileInfoStore) Search(paramsList []*model.SearchParams, userId, team
 	}
 	list.MakeNonNil()
 	return list, nil
+}
+
+func (fs SqlFileInfoStore) CountAll() (int64, error) {
+	query := fs.getQueryBuilder().
+		Select("COUNT(*)").
+		From("FileInfo").
+		Where("DeleteAt = 0")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return int64(0), errors.Wrap(err, "count_tosql")
+	}
+
+	count, err := fs.GetReplica().SelectInt(queryString, args...)
+	if err != nil {
+		return int64(0), errors.Wrap(err, "failed to count Files")
+	}
+	return count, nil
+}
+
+func (fs SqlFileInfoStore) GetFilesBatchForIndexing(startTime, endTime int64, limit int) ([]*model.FileForIndexing, error) {
+	var files []*model.FileForIndexing
+	sql, args, _ := fs.getQueryBuilder().
+		Select("fi.*, p.ChannelId").
+		From("FileInfo as fi").
+		LeftJoin("Posts AS p ON fi.PostId = p.Id").
+		Where(sq.GtOrEq{"fi.CreateAt": startTime}).
+		Where(sq.Lt{"fi.CreateAt": endTime}).
+		OrderBy("fi.CreateAt").
+		Limit(uint64(limit)).
+		ToSql()
+	_, err := fs.GetSearchReplica().Select(&files, sql, args...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Files")
+	}
+
+	return files, nil
 }

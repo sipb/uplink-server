@@ -10,8 +10,9 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/v5/audit"
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
+	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
 func (w *Web) InitSaml() {
@@ -34,7 +35,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectTo := r.URL.Query().Get("redirect_to")
+	redirectURL := r.URL.Query().Get("redirect_to")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -46,8 +47,13 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if redirectTo != "" {
-		relayProps["redirect_to"] = redirectTo
+	if redirectURL != "" {
+		if isMobile && !utils.IsValidMobileAuthRedirectURL(c.App.Config(), redirectURL) {
+			invalidSchemeErr := model.NewAppError("loginWithOAuth", "api.invalid_custom_url_scheme", nil, "", http.StatusBadRequest)
+			utils.RenderMobileError(c.App.Config(), w, invalidSchemeErr, redirectURL)
+			return
+		}
+		relayProps["redirect_to"] = redirectURL
 	}
 
 	relayProps[model.USER_AUTH_SERVICE_IS_MOBILE] = strconv.FormatBool(isMobile)
@@ -113,7 +119,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)
-	http.Redirect(w, r, "uplink.mit.edu", http.StatusFound)
+	http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 	// samlInterface := c.App.Saml()
 
 	// if samlInterface == nil {

@@ -15,7 +15,7 @@ import (
 )
 
 func TestReactionStore(t *testing.T) {
-	StoreTest(t, storetest.TestReactionStore)
+	StoreTestWithSqlStore(t, storetest.TestReactionStore)
 }
 
 func TestReactionStoreCache(t *testing.T) {
@@ -28,10 +28,9 @@ func TestReactionStoreCache(t *testing.T) {
 		require.NoError(t, err)
 
 		reaction, err := cachedStore.Reaction().GetForPost("123", true)
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, reaction, []*model.Reaction{&fakeReaction})
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)
-		require.Nil(t, err)
 		assert.Equal(t, reaction, []*model.Reaction{&fakeReaction})
 		cachedStore.Reaction().GetForPost("123", true)
 		mockStore.Reaction().(*mocks.ReactionStore).AssertNumberOfCalls(t, "GetForPost", 1)

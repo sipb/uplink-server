@@ -4,10 +4,9 @@
 package slashcommands
 
 import (
-	goi18n "github.com/mattermost/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/v5/app"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/i18n"
 )
 
 type HeaderProvider struct {
@@ -25,7 +24,7 @@ func (*HeaderProvider) GetTrigger() string {
 	return CmdHeader
 }
 
-func (*HeaderProvider) GetCommand(a *app.App, T goi18n.TranslateFunc) *model.Command {
+func (*HeaderProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CmdHeader,
 		AutoComplete:     true,
@@ -79,7 +78,7 @@ func (*HeaderProvider) DoCommand(a *app.App, args *model.CommandArgs, message st
 		}
 	}
 
-	if len(message) == 0 {
+	if message == "" {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_header.message.app_error"),
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,

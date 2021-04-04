@@ -16,6 +16,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props := GenerateLimitedClientConfig(c, telemetryID, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
+	props["EnableCustomUserStatuses"] = strconv.FormatBool(*c.TeamSettings.EnableCustomUserStatuses)
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -61,7 +62,6 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(false)
 	}
 
-	props["ExperimentalChannelSidebarOrganization"] = *c.ServiceSettings.ExperimentalChannelSidebarOrganization
 	props["ExperimentalEnableAutomaticReplies"] = strconv.FormatBool(*c.TeamSettings.ExperimentalEnableAutomaticReplies)
 	props["ExperimentalTimezone"] = strconv.FormatBool(*c.DisplaySettings.ExperimentalTimezone)
 
@@ -98,6 +98,8 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
 
 	props["CloudUserLimit"] = strconv.FormatInt(*c.ExperimentalSettings.CloudUserLimit, 10)
+
+	props["EnableLegacySidebar"] = strconv.FormatBool(*c.ServiceSettings.EnableLegacySidebar)
 
 	// Set default values for all options that require a license.
 	props["ExperimentalHideTownSquareinLHS"] = "false"
@@ -221,6 +223,8 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["EnableBotAccountCreation"] = strconv.FormatBool(*c.ServiceSettings.EnableBotAccountCreation)
+	props["EnableFile"] = strconv.FormatBool(*c.LogSettings.EnableFile)
+	props["FileLevel"] = *c.LogSettings.FileLevel
 
 	props["SiteName"] = *c.TeamSettings.SiteName
 	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")

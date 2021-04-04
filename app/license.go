@@ -12,8 +12,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 	"github.com/mattermost/mattermost-server/v5/utils"
 )
 
@@ -294,4 +294,14 @@ func (s *Server) renewalTokenValid(tokenString, signingKey string) (bool, error)
 		return false, nil
 	}
 	return true, nil
+}
+
+// GenerateLicenseRenewalLink returns a link that points to the CWS where clients can renew license
+func (s *Server) GenerateLicenseRenewalLink() (string, *model.AppError) {
+	renewalToken, err := s.GenerateRenewalToken(JWTDefaultTokenExpiration)
+	if err != nil {
+		return "", err
+	}
+	renewalLink := LicenseRenewalURL + "?token=" + renewalToken
+	return renewalLink, nil
 }

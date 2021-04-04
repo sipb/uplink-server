@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/shared/mlog"
 )
 
 const (
@@ -30,6 +30,9 @@ const (
 	SESSION_ACTIVITY_TIMEOUT          = 1000 * 60 * 5 // 5 minutes
 	SESSION_USER_ACCESS_TOKEN_EXPIRY  = 100 * 365     // 100 years
 )
+
+//msgp StringMap
+type StringMap map[string]string
 
 //msgp:tuple Session
 
@@ -152,7 +155,7 @@ func (s *Session) GetTeamByTeamId(teamId string) *TeamMember {
 }
 
 func (s *Session) IsMobileApp() bool {
-	return len(s.DeviceId) > 0 || s.IsMobile()
+	return s.DeviceId != "" || s.IsMobile()
 }
 
 func (s *Session) IsMobile() bool {
