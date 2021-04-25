@@ -76,7 +76,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	mlog.Debug("Touchstone login initiated")
 	email := r.Header.Get("mail")
 	kerb := strings.TrimSuffix(email, "@mit.edu")
-	primaryAffiliation := r.Header.Get("primary-affiliation")
+	// primaryAffiliation := r.Header.Get("primary-affiliation")
 	// mlog.Debug("Email obtained: ", mlog.String("email", email))
 	// mlog.Debug("Kerb extracted: ", mlog.String("kerb", kerb))
 	// mlog.Debug("Affiliation: ", mlog.String("primary_affiliation", primaryAffiliation))
