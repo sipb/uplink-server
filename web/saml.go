@@ -72,13 +72,14 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	// mlog.Debug(r.Method);
 	mlog.Debug("Touchstone login initiated")
 	email := r.Header.Get("mail")
 	kerb := strings.TrimSuffix(email, "@mit.edu")
 	primaryAffiliation := r.Header.Get("primary-affiliation")
-	mlog.Debug("Email obtained: ", mlog.String("email", email))
-	mlog.Debug("Kerb extracted: ", mlog.String("kerb", kerb))
-	mlog.Debug("Affiliation: ", mlog.String("primary_affiliation", primaryAffiliation))
+	// mlog.Debug("Email obtained: ", mlog.String("email", email))
+	// mlog.Debug("Kerb extracted: ", mlog.String("kerb", kerb))
+	// mlog.Debug("Affiliation: ", mlog.String("primary_affiliation", primaryAffiliation))
 
 	auditRec := c.MakeAuditRecord("TouchstoneLogin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
@@ -96,8 +97,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	mlog.Debug("User ID: ", mlog.String("user_id", user.Id))
-	mlog.Debug("Username: ", mlog.String("username", user.Username))
+	// mlog.Debug("User ID: ", mlog.String("user_id", user.Id))
+	// mlog.Debug("Username: ", mlog.String("username", user.Username))
 
 	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
 		mlog.Error("User authentication criteria check failed!")
@@ -119,7 +120,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)
-	http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
+	http.Redirect(w, r, "https://uplink.mit.edu", http.StatusFound)
 	// samlInterface := c.App.Saml()
 
 	// if samlInterface == nil {
