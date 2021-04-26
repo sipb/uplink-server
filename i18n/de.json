@@ -1871,14 +1871,6 @@
     "translation": "Team beitreten"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} [[{{.SenderName}}]], hat Sie eingeladen, [[{{.TeamDisplayName}}]] beizutreten."
-  },
-  {
     "id": "api.templates.invite_body.title",
     "translation": "Sie wurden eingeladen"
   },
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Passwort zurücksetzen"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Um ihr Passwort zu ändern, klicken Sie unten auf \"Passwort zurücksetzen\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Falls Sie ihr Passwort nicht ändern wollten, ignorieren Sie bitte die Mail und ihr Passwort wird nicht geändert. Der Passwort-Link verfällt in 24 Stunden."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -4195,11 +4179,11 @@
     "translation": "Zeit zwischen Benutzereingabenaktualisierung sollte nicht weniger als 1000 Millisekunden betragen."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Zertifikatsdatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Zertifikatsdatei verwenden."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Ungültiger Wert für TLS-Schlüsseldatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Schlüsseldatei verwenden."
   },
   {
@@ -4857,10 +4841,6 @@
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "Konnte kein Konto mit den angegeben Zugangsdaten finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
-  },
-  {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Diese E-Mail-Adresse wird bereits genutzt. Bitte eine andere wählen."
   },
   {
     "id": "system.message.name",
@@ -5845,10 +5825,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} als Gast beizutreten"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]] hat Sie eingeladen, dem Team [[{{.TeamDisplayName}}]] als Gast beizutreten."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -7075,10 +7051,6 @@
     "translation": "Konnte nicht alle Teams abrufen."
   },
   {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "Konnte nicht alle privaten Teams abrufen."
-  },
-  {
     "id": "app.team.get_all_private_team_listing.app_error",
     "translation": "Konnte nicht alle privaten Teams abrufen."
   },
@@ -7097,14 +7069,6 @@
   {
     "id": "app.team.analytics_team_count.app_error",
     "translation": "Konnte die Anzahl der Teams nicht abrufen."
-  },
-  {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "Konnte die Anzahl der öffentlichen Teams nicht abrufen."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "Konnte die Anzahl der privaten Teams nicht abrufen."
   },
   {
     "id": "api.user.login_cws.license.error",

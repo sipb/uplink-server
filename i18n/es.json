@@ -1871,16 +1871,8 @@
     "translation": "Unirme al Equipo"
   },
   {
-    "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost te permite compartir mensajes y archivos de tu Computador o teléfono, incluyendo búsquedas instantáneas. Una vez que te hayas unido a [[{{.TeamDisplayName}}]], Podrás iniciar sesión en tu nuevo equipo y utilizar todas las características en cualquier momento desde la dirección web:"
-  },
-  {
-    "id": "api.templates.invite_body.info",
-    "translation": "Has sido invitado por {{.SenderStatus}} [[{{.SenderName}}]] a unirte al equipo [[{{.TeamDisplayName}}]]."
-  },
-  {
     "id": "api.templates.invite_body.title",
-    "translation": "Haz sido invitado"
+    "translation": "{{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -1925,14 +1917,6 @@
   {
     "id": "api.templates.reset_body.button",
     "translation": "Restablecer Contraseña"
-  },
-  {
-    "id": "api.templates.reset_body.info1",
-    "translation": "Para cambiar tu contraseña, haz clic en \"Reiniciar Contraseña\"."
-  },
-  {
-    "id": "api.templates.reset_body.info2",
-    "translation": "Si no quisiste realizar un cambio de contraseña, por favor ignora este correo y tu contraseña permanecerá igual. Este enlace para reiniciar la contraseña expirará en 24 horas."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2000,7 +1984,7 @@
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
-    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android desde:"
+    "translation": "Para la mejor experiencia, descarga las aplicaciones para PC, Mac, iOS y Android."
   },
   {
     "id": "api.templates.welcome_body.button",
@@ -4195,11 +4179,11 @@
     "translation": "El tiempo transcurrido para actualizar que el usuario está escribiendo no debe ser menor a 1000 milisegundos."
   },
   {
-    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
     "translation": "Valor no válido para el archivo del certificado TLS - utiliza LetsEncrypt o especifica la ruta del archivo de certificado existente."
   },
   {
-    "id": "model.config.is_valid.tls_key_file.app_error",
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
     "translation": "Valor no válido para el archivo de la llave TLS - utiliza LetsEncrypt o especifica la ruta del archivo llave existente."
   },
   {
@@ -4857,10 +4841,6 @@
   {
     "id": "store.sql_user.get_for_login.app_error",
     "translation": "No se puede encontrar una cuenta existente con tus credenciales. Es posible que requieras una invitación por parte del dueño del equipo para poder unirte."
-  },
-  {
-    "id": "store.sql_user.update.email_taken.app_error",
-    "translation": "Este correo electrónico ya está siendo utilizado. Por favor escoge otro."
   },
   {
     "id": "system.message.name",
@@ -5745,10 +5725,6 @@
   {
     "id": "api.templates.invite_guest_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} te ha invitado a unirte al equipo {{ .TeamDisplayName }} como huésped"
-  },
-  {
-    "id": "api.templates.invite_body_guest.info",
-    "translation": "[[{{.SenderName}}]], ha invitado a unirte al equipo [[{{.TeamDisplayName}}]] como huésped."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -7207,14 +7183,6 @@
     "translation": "No se puede obtener la cantidad de equipos."
   },
   {
-    "id": "app.team.analytics_public_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos públicos."
-  },
-  {
-    "id": "app.team.analytics_private_team_count.app_error",
-    "translation": "No se puede obtener la cantidad de equipos privados."
-  },
-  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "No se puede obtener los mensajes del canal."
   },
@@ -7389,18 +7357,6 @@
   {
     "id": "model.plugin_command_crash.error.app_error",
     "translation": "El comando /{{.Command}} bloqueó el plugin {{.PluginId}}. Por favor, póngase en contacto con el administrador del sistema"
-  },
-  {
-    "id": "ent.cloud.request_error",
-    "translation": "Petición de tramitación del error a CWS"
-  },
-  {
-    "id": "ent.cloud.json_encode.error",
-    "translation": "Error interno marshaling petición a CWS"
-  },
-  {
-    "id": "ent.cloud.authentication_failed",
-    "translation": "Incapaz de autenticar a CWS"
   },
   {
     "id": "api.cloud.request_error",
@@ -7781,10 +7737,6 @@
   {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "No se puede analizar el cuerpo de la solicitud."
-  },
-  {
-    "id": "app.team.get_all_private_team_page_listing.app_error",
-    "translation": "No pudimos poner todos los equipos privados en la página."
   },
   {
     "id": "api.user.login_cws.license.error",
@@ -8193,5 +8145,85 @@
   {
     "id": "api.back_to_app",
     "translation": "Volver a {{.SiteName}}"
+  },
+  {
+    "id": "api.templates.cloud_welcome_email.add_apps_info",
+    "translation": "Añade apps a tu espacio de trabajo"
+  },
+  {
+    "id": "api.templates.at_limit_info5",
+    "translation": "Alternativamente, usted puede deshabilitar usuarios en la Consola de Administración para dejar sitios libres para usuarios y mantenerse por debajo del limite de usuarios gratuitos."
+  },
+  {
+    "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
+    "translation": "Cuerpo de la petición invalido o no encontrado."
+  },
+  {
+    "id": "api.team.cloud.subscription.error",
+    "translation": "Error al obtener la suscripción al cloud"
+  },
+  {
+    "id": "api.post.search_files.not_implemented.app_error",
+    "translation": "Esta funcionalidad esta en desarrollo, y solo está disponible usando una marca de funcionalidad."
+  },
+  {
+    "id": "api.post.search_files.invalid_body.app_error",
+    "translation": "No fue posible analizar el cuerpo de la petición."
+  },
+  {
+    "id": "api.no_license",
+    "translation": "Se requiere una licencia E10 o E20 para usar esta funcionalidad."
+  },
+  {
+    "id": "api.getThreadsForUser.bad_params",
+    "translation": "Los parametros Before y After de getThreadsForUser son mutuamente excluyentes"
+  },
+  {
+    "id": "api.export.export_not_found.app_error",
+    "translation": "No fue posible encontrar el fichero de exportación."
+  },
+  {
+    "id": "api.custom_status.recent_custom_statuses.delete.app_error",
+    "translation": "Fallo al borrar el estado reciente. Por favor intente añadir un estado primero o contactar con su administrador del sistema para más detalles."
+  },
+  {
+    "id": "api.custom_status.disabled",
+    "translation": "La funcionalidad de estados personalizados ha sido deshabilitada. Por favor contacte con su administrador del sistema para más detalles."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Tu estado ha sido establecido a “{{.EmojiName}} {{.StatusMessage}}”. Puede cambiar su estado desde el desplegable de estado en la cabecera de la barra de canales."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "estado"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:nombre_de_emoji:] [mensage_de_estado] o clear"
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Establecer o eliminar tu estado"
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Su estado ha sido eliminado."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Error eliminando el estado."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Error estableciendo el estado."
+  },
+  {
+    "id": "api.cloud.get_subscription.error",
+    "translation": "Error obteniendo la suscripción al cloud."
+  },
+  {
+    "id": "api.cloud.get_admins_emails.error",
+    "translation": "Error obteniendo el email de los administradores del sistema."
   }
 ]
