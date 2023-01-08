@@ -72,100 +72,38 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := c.App.Saml()
+	mlog.Debug("Touchstone login initiated")
+	email := r.Header.Get("mail")
+	kerb := strings.TrimSuffix(email, "@mit.edu")
 
-	if samlInterface == nil {
-		c.Err = model.NewAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
-		return
-	}
-
-	//Validate that the user is with SAML and all that
-	encodedXML := r.FormValue("SAMLResponse")
-	relayState := r.FormValue("RelayState")
-
-	relayProps := make(map[string]string)
-	if relayState != "" {
-		stateStr := ""
-		b, err := b64.StdEncoding.DecodeString(relayState)
-		if err != nil {
-			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
-			return
-		}
-		stateStr = string(b)
-		relayProps = model.MapFromJson(strings.NewReader(stateStr))
-	}
-
-	auditRec := c.MakeAuditRecord("completeSaml", audit.Fail)
+	auditRec := c.MakeAuditRecord("TouchstoneLogin", audit.Fail)
 	defer c.LogAuditRec(auditRec)
-	c.LogAudit("attempt")
+	c.LogAudit("attempt - login_id="+kerb)
 
-	action := relayProps["action"]
-	auditRec.AddMeta("action", action)
-
-	isMobile := action == model.OAUTH_ACTION_MOBILE
-	redirectURL := ""
-	hasRedirectURL := false
-	if val, ok := relayProps["redirect_to"]; ok {
-		redirectURL = val
-		hasRedirectURL = val != ""
-	}
-
-	handleError := func(err *model.AppError) {
-		if isMobile && hasRedirectURL {
-			err.Translate(c.App.T)
-			utils.RenderMobileError(c.App.Config(), w, err, redirectURL)
-		} else {
-			c.Err = err
-			c.Err.StatusCode = http.StatusFound
-		}
-	}
-
-	user, err := samlInterface.DoLogin(encodedXML, relayProps)
+	//Get user from kerb
+	user, err := c.App.GetUserForLogin("", kerb)
 	if err != nil {
-		c.LogAudit("fail")
-		mlog.Error(err.Error())
-		handleError(err)
+		mlog.Error("Invalid kerb user!", mlog.String("kerb", kerb))
+		c.LogAuditWithUserId(user.Id, "Touchstone login failure - kerb="+kerb)
+		c.Err = err
 		return
 	}
-
-	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
-		mlog.Error(err.Error())
-		handleError(err)
-		return
-	}
-
-	switch action {
-	case model.OAUTH_ACTION_SIGNUP:
-		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
-				c.LogErrorByCode(err)
-				break
-			}
-			c.App.AddDirectChannels(teamId, user)
-		}
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
-		if err = c.App.RevokeAllSessions(user.Id); err != nil {
-			c.Err = err
-			return
-		}
-		auditRec.AddMeta("revoked_user_id", user.Id)
-		auditRec.AddMeta("revoked", "Revoked all sessions for user")
-
-		c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-		c.App.Srv().Go(func() {
-			if err = c.App.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
-				c.LogErrorByCode(err)
-			}
-		})
-	}
-
 	auditRec.AddMeta("obtained_user_id", user.Id)
 	c.LogAuditWithUserId(user.Id, "obtained user")
 
-	err = c.App.DoLogin(w, r, user, "", isMobile, false, true)
+	if err = c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
+		mlog.Error("User authentication criteria check failed!")
+		c.Err = err
+		c.Err.StatusCode = http.StatusFound
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "authenticated")
+
+	err = c.App.DoLogin(w, r, user, "", false, false, true)
 	if err != nil {
-		mlog.Error(err.Error())
-		handleError(err)
+		mlog.Error("Login Failed!")
+		c.Err = err
 		return
 	}
 
@@ -173,29 +111,5 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "success")
 
 	c.App.AttachSessionCookies(w, r)
-
-	if hasRedirectURL {
-		if isMobile {
-			// Mobile clients with redirect url support
-			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SESSION_COOKIE_TOKEN: c.App.Session().Token,
-				model.SESSION_COOKIE_CSRF:  c.App.Session().GetCSRF(),
-			})
-			utils.RenderMobileAuthComplete(w, redirectURL)
-		} else {
-			redirectURL = c.GetSiteURLHeader() + redirectURL
-			http.Redirect(w, r, redirectURL, http.StatusFound)
-		}
-		return
-	}
-
-	switch action {
-	// Mobile clients with web view implementation
-	case model.OAUTH_ACTION_MOBILE:
-		ReturnStatusOK(w)
-	case model.OAUTH_ACTION_EMAIL_TO_SSO:
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
-	default:
-		http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
-	}
+	http.Redirect(w, r, "https://uplink.mit.edu", http.StatusFound)
 }

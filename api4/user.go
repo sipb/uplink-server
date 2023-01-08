@@ -1882,7 +1882,8 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("Logout", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("")
-
+	// mlog.Debug("Logging out");
+	// mlog.Debug("Request type: ", mlog.String("Request_type", r.Method));
 	c.RemoveSessionCookie(w, r)
 	if c.App.Session().Id != "" {
 		if err := c.App.RevokeSessionById(c.App.Session().Id); err != nil {
@@ -1893,6 +1894,9 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+	c.App.AttachSessionCookies(w, r)
+	r.Method = "GET"
+	http.Redirect(w, r, "https://uplink.mit.edu/Shibboleth.sso/Logout?return=https://uplink.mit.edu/login", http.StatusFound)
 }
 
 func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
